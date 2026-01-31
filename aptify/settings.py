@@ -108,15 +108,29 @@ TEMPLATES = [
         },
     },
 ]
-
+# Google OAuth Configuration - Using Environment Variables
 SOCIALACCOUNT_PROVIDERS = {
-    "google": {
-        # For each OAuth based provider, either add a ``SocialApp``
-        # (``socialaccount`` app) containing the required client
-        # credentials, or list them here:
-        "APP": {"client_id": "123", "secret": "456", "key": ""}
+    'google': {
+        'APP': {
+            'client_id': env('GOOGLE_CLIENT_ID', default=''),
+            'secret': env('GOOGLE_CLIENT_SECRET', default=''),
+        },
+        'SCOPE': [
+            'profile',
+            'email',
+        ],
+        'AUTH_PARAMS': {
+            'access_type': 'online',
+        },
+        'FIELDS': [
+            'id',
+            'email',
+            'name',
+            'picture'
+        ]
     }
 }
+
 
 WSGI_APPLICATION = "aptify.wsgi.application"
 
@@ -236,3 +250,17 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 
 ACCOUNT_SIGNUP_FIELDS = ['email', 'username']
+
+
+ACCOUNT_EMAIL_VERIFICATION = 'optional'
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+ACCOUNT_SIGNUP_FIELDS = ['email', 'username','password1*']
+
+
+ACCOUNT_LOGIN_METHODS=['username', 'email']
+ACCOUNT_LOGOUT_ON_PASSWORD_CHANGE = True
+ACCOUNT_SESSION_REMEMBER = True
+
+LOGIN_REDIRECT_URL = '/'
+ACCOUNT_LOGOUT_REDIRECT_URL = '/'
+
