@@ -1,0 +1,12 @@
+[project]
+name = "aptify"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "django>=6.0.1",
+    "django-allauth[socialaccount]>=65.14.0",
+    "django-ninja>=1.5.3",
+    "whitenoise>=6.11.0",
+]
