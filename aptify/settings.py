@@ -63,6 +63,7 @@ ALLOWED_HOSTS = (
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
+    "django.contrib.sites",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
@@ -73,6 +74,7 @@ INSTALLED_APPS = [
     "allauth.socialaccount.providers.google",
     "allauth.socialaccount.providers.github",
     "allauth.socialaccount.providers.facebook",
+    "users",
 ]
 
 MIDDLEWARE = [
@@ -120,25 +122,64 @@ WSGI_APPLICATION = "aptify.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
-# Configure DATABASES using django-environ's url/db helpers.
-# Set DATABASE_URL to your Supabase Postgres connection string, for example:
-# postgres://user:password@host:5432/dbname
-DATABASES = {
-    "default": env.db(
-        "DATABASE_URL",
-        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
-    )
-}
+# Configure DATABASES depending on environment
+# If running in production and DATABASE_URL is present, prefer that (e.g. Supabase)
+ENVIRONMENT = env("ENVIRONMENT", default="development").lower()
 
-# Ensure SSL mode for Postgres connections by default when using Supabase
-if DATABASES.get("default", {}).get("ENGINE", "").endswith("postgresql"):
-    # Add sslmode=require unless explicitly disabled
+if ENVIRONMENT == "production" and env("DATABASE_URL", default=None):
+    # Production: use DATABASE_URL (Supabase)
+    DATABASES = {"default": env.db("DATABASE_URL")}
+    # Enforce ssl by default for production Postgres
     if env.bool("DATABASE_SSL", default=True):
         DATABASES["default"].setdefault("OPTIONS", {})
         DATABASES["default"]["OPTIONS"].setdefault("sslmode", "require")
+else:
+    # Development / local: prefer explicit DB_* vars if present
+    if env("DB_NAME", default=None):
+        DATABASES = {
+            "default": {
+                "ENGINE": "django.db.backends.postgresql",
+                "NAME": env("DB_NAME"),
+                "USER": env("DB_USER", default="postgres"),
+                "PASSWORD": env("DB_PASSWORD", default=""),
+                "HOST": env("DB_HOST", default="127.0.0.1"),
+                "PORT": env("DB_PORT", default="5432"),
+            }
+        }
+        # For local hosts, default to no ssl unless explicitly enabled
+        if env.bool("DATABASE_SSL", default=False) and DATABASES["default"][
+            "HOST"
+        ] not in (
+            "localhost",
+            "127.0.0.1",
+        ):
+            DATABASES["default"].setdefault("OPTIONS", {})
+            DATABASES["default"]["OPTIONS"].setdefault("sslmode", "require")
+    else:
+        # fallback to local sqlite
+        DATABASES = {
+            "default": {
+                "ENGINE": "django.db.backends.sqlite3",
+                "NAME": BASE_DIR / "db.sqlite3",
+            }
+        }
 
 # Connection lifetime
 DATABASES["default"].setdefault("CONN_MAX_AGE", env.int("CONN_MAX_AGE", 600))
+
+
+# CUSTOM USER MODEL
+AUTH_USER_MODEL = 'users.User'
+
+# ALLAUTH CONFIGURATION
+SITE_ID = 1
+ACCOUNT_USER_MODEL_USERNAME_FIELD = 'username'
+# New Allauth 0.61+ settings format
+ACCOUNT_LOGIN_METHODS = {'email'}
+ACCOUNT_SIGNUP_FIELDS = ['email', 'username'] 
+ACCOUNT_EMAIL_REQUIRED = True # Still used in some contexts, but FIELDS overrides for signup forms often. 
+# Keeping strict defaults for now to match 'email' login requirement
+ACCOUNT_EMAIL_VERIFICATION = 'optional' 
 
 
 # Password validation
@@ -189,3 +230,7 @@ STATIC_URL = "static/"
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+
+
+ACCOUNT_SIGNUP_FIELDS = ['email', 'username']
