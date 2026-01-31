@@ -9,4 +9,8 @@ dependencies = [
     "django-allauth[socialaccount]>=65.14.0",
     "django-ninja>=1.5.3",
     "whitenoise>=6.11.0",
+    "psycopg[binary]>=3.2",
+    "dj-database-url>=1.0.0",
+    "django-environ>=0.10.0",
+    "django-environ>=0.12.0",
 ]
