@@ -81,3 +81,226 @@ class Achievement(models.Model):
 
     def __str__(self):
         return f"{self.title} - {self.profile.full_name}"
+
+
+class Goal(models.Model):
+    """
+    GOALS LAYER: User-defined learning and achievement goals.
+    """
+    STATUS_CHOICES = (
+        ('not_started', 'Not Started'),
+        ('in_progress', 'In Progress'),
+        ('completed', 'Completed'),
+        ('cancelled', 'Cancelled'),
+    )
+    
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='goals')
+    name = models.CharField(max_length=255, help_text="Goal title or description")
+    description = models.TextField(blank=True, help_text="Detailed description of the goal")
+    
+    # Deadline can be flexible: specific date, month, or year
+    deadline = models.DateField(help_text="Target deadline for this goal")
+    
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='not_started'
+    )
+    
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+    
+    class Meta:
+        ordering = ['deadline', '-created_at']
+        indexes = [
+            models.Index(fields=['user', 'status']),
+            models.Index(fields=['deadline']),
+        ]
+
+    def __str__(self):
+        return f"{self.name} - {self.user.username} ({self.status})"
+    
+    @property
+    def is_overdue(self):
+        """Check if goal deadline has passed"""
+        from django.utils import timezone
+        return self.deadline < timezone.now().date() and self.status != 'completed'
+    
+    @property
+    def days_remaining(self):
+        """Calculate days until deadline"""
+        from django.utils import timezone
+        delta = self.deadline - timezone.now().date()
+        return delta.days if delta.days > 0 else 0
+
+
+class Course(models.Model):
+    """
+    COURSES LAYER: Learning courses with aggregated resources.
+    """
+    LEVEL_CHOICES = (
+        ('beginner', 'Beginner'),
+        ('intermediate', 'Intermediate'),
+        ('advanced', 'Advanced'),
+        ('expert', 'Expert'),
+    )
+    
+    STATUS_CHOICES = (
+        ('draft', 'Draft'),
+        ('published', 'Published'),
+        ('archived', 'Archived'),
+    )
+    
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='courses_created')
+    name = models.CharField(max_length=255, help_text="Course name")
+    description = models.TextField(help_text="Detailed course description")
+    category = models.CharField(max_length=100, help_text="Course category (e.g., AI, Python, Web Development)")
+    level = models.CharField(max_length=20, choices=LEVEL_CHOICES, default='beginner')
+    
+    # Course metadata
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='published')
+    duration_hours = models.IntegerField(help_text="Estimated duration in hours", null=True, blank=True)
+    prerequisites = models.TextField(blank=True, help_text="Any prerequisites or recommended prior knowledge")
+    
+    # Learning outcomes
+    learning_outcomes = models.TextField(blank=True, help_text="What students will learn (comma-separated)")
+    
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    published_at = models.DateTimeField(null=True, blank=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['user', 'status']),
+            models.Index(fields=['category', 'level']),
+        ]
+
+    def __str__(self):
+        return f"{self.name} ({self.level})"
+    
+    @property
+    def resource_count(self):
+        return self.resources.count()
+    
+    @property
+    def total_resource_hours(self):
+        """Calculate total hours from all resources"""
+        return sum(r.duration_hours for r in self.resources.all() if r.duration_hours) or 0
+
+
+class CourseResource(models.Model):
+    """
+    COURSE RESOURCES: Aggregated learning resources (no video links, curated alternatives).
+    """
+    RESOURCE_TYPE_CHOICES = (
+        ('documentation', 'Documentation'),
+        ('tutorial', 'Tutorial'),
+        ('article', 'Article'),
+        ('interactive', 'Interactive Learning'),
+        ('book', 'Book'),
+        ('course', 'Online Course'),
+        ('repository', 'GitHub Repository'),
+        ('podcast', 'Podcast'),
+        ('tool', 'Tool/Framework'),
+        ('practice', 'Practice Problems'),
+    )
+    
+    QUALITY_CHOICES = (
+        ('excellent', '⭐⭐⭐⭐⭐ Excellent'),
+        ('very_good', '⭐⭐⭐⭐ Very Good'),
+        ('good', '⭐⭐⭐ Good'),
+        ('fair', '⭐⭐ Fair'),
+    )
+    
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='resources')
+    title = models.CharField(max_length=255, help_text="Resource title")
+    description = models.TextField(help_text="What this resource covers")
+    resource_type = models.CharField(max_length=50, choices=RESOURCE_TYPE_CHOICES)
+    
+    # Resource details
+    url = models.URLField(help_text="URL to the resource")
+    platform = models.CharField(max_length=100, help_text="Platform (e.g., freeCodeCamp, MDN, Stack Overflow)")
+    
+    # Metadata
+    duration_hours = models.IntegerField(null=True, blank=True, help_text="Duration in hours (if applicable)")
+    quality_rating = models.CharField(
+        max_length=20, 
+        choices=QUALITY_CHOICES, 
+        default='good',
+        help_text="Quality rating (curated assessment)"
+    )
+    difficulty_level = models.CharField(
+        max_length=20,
+        choices=[('beginner', 'Beginner'), ('intermediate', 'Intermediate'), ('advanced', 'Advanced')],
+        default='beginner'
+    )
+    
+    # Relevance
+    is_free = models.BooleanField(default=True, help_text="Is this resource free?")
+    is_official = models.BooleanField(default=False, help_text="Is this official documentation/resource?")
+    is_trending = models.BooleanField(default=False, help_text="Is this a trending/popular resource?")
+    
+    # Tracking
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    added_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='resources_added')
+    
+    class Meta:
+        ordering = ['-quality_rating', '-is_official', '-created_at']
+        indexes = [
+            models.Index(fields=['course', 'resource_type']),
+            models.Index(fields=['is_free', 'is_trending']),
+        ]
+
+    def __str__(self):
+        return f"{self.title} ({self.get_resource_type_display()})"
+    
+    @property
+    def get_star_rating(self):
+        """Return numeric star rating"""
+        ratings = {
+            'excellent': 5,
+            'very_good': 4,
+            'good': 3,
+            'fair': 2,
+        }
+        return ratings.get(self.quality_rating, 3)
+
+
+class CourseEnrollment(models.Model):
+    """
+    COURSE ENROLLMENT: Track user progress through courses.
+    """
+    STATUS_CHOICES = (
+        ('enrolled', 'Enrolled'),
+        ('in_progress', 'In Progress'),
+        ('completed', 'Completed'),
+        ('abandoned', 'Abandoned'),
+    )
+    
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='course_enrollments')
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='enrollments')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='enrolled')
+    
+    # Progress tracking
+    progress_percentage = models.IntegerField(default=0, help_text="Percentage of course completed")
+    resources_completed = models.IntegerField(default=0)
+    
+    # Timestamps
+    enrolled_at = models.DateTimeField(auto_now_add=True)
+    started_at = models.DateTimeField(null=True, blank=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+    
+    class Meta:
+        unique_together = ('user', 'course')
+        indexes = [
+            models.Index(fields=['user', 'status']),
+        ]
+
+    def __str__(self):
+        return f"{self.user.username} - {self.course.name}"
+

@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Dashboard - AptiFy{% endblock %}
+
+{% block content %}
+<div class="dashboard-page">
+  <nav class="navbar">
+    <div class="navbar-content">
+      <h1 class="navbar-brand">AptiFy</h1>
+      <div class="navbar-menu">
+        <a href="{% url 'dashboard' %}" class="nav-link active">Overview</a>
+        <a href="{% url 'course-list' %}" class="nav-link">Courses</a>
+        <a href="{% url 'goal-list' %}" class="nav-link">Goals</a>
+        <a href="/assignments/" class="nav-link">Assignments</a>
+        <a href="/analysis/" class="nav-link">Analysis</a>
+        <a href="#" class="nav-link">Settings</a>
+      </div>
+      <div class="navbar-actions">
+        <div class="user-display">{{ user.username }}</div>
+        <form method="post" action="{% url 'account_logout' %}">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-outline btn-small">
+            Logout
+          </button>
+        </form>
+      </div>
+    </div>
+  </nav>
+
+  <div class="dashboard-container">
+    <main class="dashboard-content">
+      <header class="dashboard-header">
+        <h2>Welcome back, {{ user.first_name|default:user.username }}!</h2>
+        <p>Here's an overview of your learning progress.</p>
+      </header>
+
+      <div class="dashboard-cards">
+        <div class="card">
+          <div class="card-icon">📚</div>
+          <h3>Courses</h3>
+          <p>Explore curated learning paths with aggregated resources.</p>
+          <a href="{% url 'course-list' %}" class="btn btn-primary btn-block">Explore Courses</a>
+        </div>
+        <div class="card">
+          <div class="card-icon">🎯</div>
+          <h3>Goals</h3>
+          <p>Track and manage your learning objectives.</p>
+          <a href="{% url 'goal-list' %}" class="btn btn-secondary btn-block">Manage Goals</a>
+        </div>
+        <div class="card">
+          <div class="card-icon">📊</div>
+          <h3>Performance</h3>
+          <p>View your detailed analytics and improvement areas.</p>
+          <button class="btn btn-secondary btn-block">View Stats</button>
+        </div>
+      </div>
+
+      <!-- System Status removed - focus on user content -->
+    </main>
+
+    <footer class="footer">
+      <p>&copy; 2026 AptiFy. All rights reserved.</p>
+    </footer>
+  </div>
+</div>
+{% endblock %}

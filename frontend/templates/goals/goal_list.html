@@ -1,0 +1,434 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}My Goals - AptiFy{% endblock %}
+
+{% block content %}
+<div class="goals-page">
+  <nav class="navbar">
+    <div class="navbar-content">
+      <h1 class="navbar-brand">AptiFy</h1>
+      <div class="navbar-menu">
+        <a href="{% url 'dashboard' %}" class="nav-link">Dashboard</a>
+        <a href="{% url 'course-list' %}" class="nav-link">Courses</a>
+        <a href="{% url 'goal-list' %}" class="nav-link active">Goals</a>
+        <a href="#" class="nav-link">Assignments</a>
+        <a href="#" class="nav-link">Settings</a>
+      </div>
+      <div class="navbar-actions">
+        <div class="user-display">{{ user.username }}</div>
+        <form method="post" action="{% url 'account_logout' %}">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-outline btn-small">
+            Logout
+          </button>
+        </form>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container">
+    <div class="goals-header">
+      <div>
+        <h2>My Goals</h2>
+        <p>Track and manage your learning goals</p>
+      </div>
+      <a href="{% url 'goal-create' %}" class="btn btn-primary">+ Create Goal</a>
+    </div>
+
+    <!-- Filter Section -->
+    <div class="goals-filter">
+      <div class="filter-header">
+        <h3>Filter & Sort Goals</h3>
+      </div>
+      <form method="get" class="filter-form">
+        <div class="filter-row">
+          <div class="filter-group">
+            <label for="id_status">📊 Status:</label>
+            {{ filter_form.status }}
+          </div>
+          <div class="filter-group">
+            <label for="id_sort">↕️ Sort By:</label>
+            {{ filter_form.sort }}
+          </div>
+          <div class="filter-actions">
+            <button type="submit" class="btn btn-primary btn-small">🔍 Apply</button>
+            <a href="{% url 'goal-list' %}" class="btn btn-outline btn-small">↻ Reset</a>
+          </div>
+        </div>
+        
+        <!-- Quick Filters -->
+        <div class="quick-filters">
+          <span class="quick-filter-label">Quick View:</span>
+          <a href="?status=not_started" class="quick-filter-btn {% if request.GET.status == 'not_started' %}active{% endif %}">
+            🆕 Not Started
+          </a>
+          <a href="?status=in_progress" class="quick-filter-btn {% if request.GET.status == 'in_progress' %}active{% endif %}">
+            ⚡ In Progress
+          </a>
+          <a href="?status=completed" class="quick-filter-btn {% if request.GET.status == 'completed' %}active{% endif %}">
+            ✅ Completed
+          </a>
+          <a href="?status=cancelled" class="quick-filter-btn {% if request.GET.status == 'cancelled' %}active{% endif %}">
+            ❌ Cancelled
+          </a>
+          <a href="{% url 'goal-list' %}" class="quick-filter-btn {% if not request.GET.status %}active{% endif %}">
+            📋 All Goals
+          </a>
+        </div>
+      </form>
+    </div>
+
+    <!-- Goals List -->
+    {% if goals %}
+    <div class="goals-list">
+      {% for goal in goals %}
+      <div class="goal-card goal-status-{{ goal.status }}">
+        <div class="goal-header">
+          <div>
+            <h3>{{ goal.name }}</h3>
+            {% if goal.description %}
+            <p class="goal-description">{{ goal.description }}</p>
+            {% endif %}
+          </div>
+          <span class="goal-status badge-{{ goal.status }}">{{ goal.get_status_display }}</span>
+        </div>
+
+        <div class="goal-details">
+          <div class="goal-detail">
+            <span class="label">Deadline:</span>
+            <span class="value">
+              {{ goal.deadline|date:"M d, Y" }}
+              {% if goal.is_overdue %}
+              <span class="tag tag-danger">Overdue</span>
+              {% elif goal.days_remaining > 0 %}
+              <span class="tag tag-info">{{ goal.days_remaining }} days left</span>
+              {% else %}
+              <span class="tag tag-success">Completed</span>
+              {% endif %}
+            </span>
+          </div>
+
+          <div class="goal-detail">
+            <span class="label">Created:</span>
+            <span class="value">{{ goal.created_at|date:"M d, Y" }}</span>
+          </div>
+
+          {% if goal.completed_at %}
+          <div class="goal-detail">
+            <span class="label">Completed:</span>
+            <span class="value">{{ goal.completed_at|date:"M d, Y" }}</span>
+          </div>
+          {% endif %}
+        </div>
+
+        <div class="goal-actions">
+          <a href="{% url 'goal-update' goal.pk %}" class="btn btn-secondary btn-small">Edit</a>
+          <a href="{% url 'goal-delete' goal.pk %}" class="btn btn-danger btn-small">Delete</a>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if is_paginated %}
+    <div class="pagination">
+      <nav>
+        <ul class="page-list">
+          {% if page_obj.has_previous %}
+          <li>
+            <a href="?page=1{% if filter_form.status.value %}&status={{ filter_form.status.value }}{% endif %}">First</a>
+          </li>
+          <li>
+            <a href="?page={{ page_obj.previous_page_number }}{% if filter_form.status.value %}&status={{ filter_form.status.value }}{% endif %}">Previous</a>
+          </li>
+          {% endif %}
+
+          <li class="current">
+            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+          </li>
+
+          {% if page_obj.has_next %}
+          <li>
+            <a href="?page={{ page_obj.next_page_number }}{% if filter_form.status.value %}&status={{ filter_form.status.value }}{% endif %}">Next</a>
+          </li>
+          <li>
+            <a href="?page={{ page_obj.paginator.num_pages }}{% if filter_form.status.value %}&status={{ filter_form.status.value }}{% endif %}">Last</a>
+          </li>
+          {% endif %}
+        </ul>
+      </nav>
+    </div>
+    {% endif %}
+    {% else %}
+    <div class="empty-state">
+      <div class="empty-icon">🎯</div>
+      <h3>No goals yet</h3>
+      <p>Create your first learning goal to get started</p>
+      <a href="{% url 'goal-create' %}" class="btn btn-primary">Create Your First Goal</a>
+    </div>
+    {% endif %}
+  </div>
+
+  <footer class="footer">
+    <p>&copy; 2026 AptiFy. All rights reserved.</p>
+  </footer>
+</div>
+
+<style>
+.goals-page {
+  min-height: 100vh;
+  background: var(--color-bg-primary);
+  color: var(--color-text-primary);
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.goals-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: var(--color-bg-card);
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.goals-header h2 {
+  margin: 0;
+  font-size: 2rem;
+}
+
+.goals-header p {
+  margin: 0.5rem 0 0 0;
+  color: var(--color-text-muted);
+}
+
+.goals-filter {
+  margin-bottom: 2rem;
+  padding: 1rem;
+  background: var(--color-bg-card);
+  border-radius: 10px;
+}
+
+.filter-form {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.filter-row {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  width: 100%;
+  align-items: flex-end;
+}
+
+.filter-group {
+  flex: 1;
+  min-width: 200px;
+}
+
+.filter-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.filter-group select {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid var(--color-border);
+  border-radius: 5px;
+  background: var(--color-bg-primary);
+  color: var(--color-text-primary);
+}
+
+.goals-list {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.goal-card {
+  padding: 1.5rem;
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.goal-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+}
+
+.goal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+  gap: 1rem;
+}
+
+.goal-header h3 {
+  margin: 0;
+  font-size: 1.3rem;
+}
+
+.goal-description {
+  margin: 0.5rem 0 0 0;
+  color: var(--color-text-muted);
+  font-size: 0.95rem;
+}
+
+.goal-status {
+  font-weight: 600;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+.badge-completed {
+  background: #d4edda;
+  color: #155724;
+}
+
+.badge-in_progress {
+  background: #cfe2ff;
+  color: #084298;
+}
+
+.badge-not_started {
+  background: #e2e3e5;
+  color: #383d41;
+}
+
+.badge-cancelled {
+  background: #f8d7da;
+  color: #842029;
+}
+
+.goal-details {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+  padding: 1rem 0;
+  border-top: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.goal-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.goal-detail .label {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  font-weight: 500;
+}
+
+.goal-detail .value {
+  font-size: 0.95rem;
+  color: var(--color-text-primary);
+}
+
+.tag {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-left: 0.5rem;
+}
+
+.tag-danger {
+  background: #f8d7da;
+  color: #842029;
+}
+
+.tag-info {
+  background: #cfe2ff;
+  color: #084298;
+}
+
+.tag-success {
+  background: #d4edda;
+  color: #155724;
+}
+
+.goal-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 3rem 2rem;
+  background: var(--color-bg-card);
+  border-radius: 10px;
+}
+
+.empty-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.empty-state h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.5rem;
+}
+
+.empty-state p {
+  margin: 0 0 1.5rem 0;
+  color: var(--color-text-muted);
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  margin-top: 2rem;
+}
+
+.page-list {
+  display: flex;
+  gap: 0.5rem;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.page-list li {
+  margin: 0;
+}
+
+.page-list a {
+  display: block;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: 5px;
+  color: var(--color-text-primary);
+  text-decoration: none;
+  transition: background 0.2s ease;
+}
+
+.page-list a:hover {
+  background: var(--color-bg-card);
+}
+
+.current {
+  padding: 0.5rem 0.75rem;
+  color: var(--color-text-muted);
+}
+</style>
+{% endblock %}

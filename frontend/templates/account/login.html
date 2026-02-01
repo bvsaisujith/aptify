@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load account socialaccount %}
+
+{% block title %}Login - AptiFy{% endblock %}
+
+{% block content %}
+<div class="login-page">
+  <div class="login-background">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+  </div>
+
+  <div class="login-container">
+    <div class="login-header">
+      <h1 class="brand">AptiFy</h1>
+      <p class="tagline">Unlock your potential with AI-driven learning</p>
+    </div>
+
+    <div class="login-card">
+      <h2 class="text-center mb-3">Welcome Back</h2>
+
+      {% if form.errors %}
+      <div class="error-message">
+        <p>Please correct the errors below.</p>
+      </div>
+      {% endif %}
+
+      <form class="login-form" method="POST" action="{% url 'account_login' %}">
+        {% csrf_token %}
+        
+        {% for field in form %}
+        <div class="form-group">
+          <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+          {{ field }}
+          
+          {% if field.errors %}
+          <div
+            style="
+              color: var(--color-danger);
+              font-size: 0.875rem;
+              margin-top: 0.25rem;
+            "
+          >
+            {{ field.errors.0 }}
+          </div>
+          {% endif %}
+        </div>
+        {% endfor %}
+        
+        {% if redirect_field_value %}
+        <input
+          type="hidden"
+          name="{{ redirect_field_name }}"
+          value="{{ redirect_field_value }}"
+        />
+        {% endif %}
+
+        <button type="submit" class="btn btn-primary btn-block">Sign In</button>
+      </form>
+
+      <div class="text-center mb-3">
+        <span class="text-muted">Or continue with</span>
+      </div>
+
+      <div class="flex gap-2 justify-center mb-3">
+        {% get_providers as socialaccount_providers %}
+        
+        {% for provider in socialaccount_providers %}
+        <a
+          href="{% provider_login_url provider.id process='login' %}"
+          class="btn btn-secondary btn-block"
+          style="
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+          "
+        >
+          {{ provider.name }}
+        </a>
+        {% endfor %}
+      </div>
+
+      <div class="login-footer">
+        <p>
+          Don't have an account?
+          <a href="{% url 'account_signup' %}">Sign Up</a>
+        </p>
+        <p class="mt-1">
+          <a
+            href="{% url 'account_reset_password' %}"
+            style="font-size: 0.875rem"
+            >Forgot Password?</a
+          >
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}AptiFy - AI-Powered Learning{% endblock %}</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}" />
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    {% block extra_head %}{% endblock %}
+  </head>
+  <body>
+    {% if messages %}
+    <div
+      class="messages-container"
+      style="position: fixed; top: 20px; right: 20px; z-index: 1000"
+    >
+      {% for message in messages %}
+      <div
+        class="error-message"
+        style="margin-bottom: 10px; animation: slideIn 0.3s ease-out"
+      >
+        {{ message }}
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+    
+    {% block content %}{% endblock %}
+    
+    {% block extra_body %}{% endblock %}
+  </body>
+</html>

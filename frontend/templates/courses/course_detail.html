@@ -1,0 +1,478 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ course.name }} - AptiFy{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Header Section -->
+    <div class="page-header">
+        <div class="header-content">
+            <h1>{{ course.name }}</h1>
+            <div class="course-badges">
+                <span class="badge badge-{{ course.level }}">{{ course.get_level_display }}</span>
+                <span class="badge badge-category">{{ course.category }}</span>
+            </div>
+            <p class="subtitle">{{ course.description }}</p>
+        </div>
+        <div class="header-actions">
+            <a href="{% url 'course-update' course.pk %}" class="btn btn-warning">✏️ Edit</a>
+            <a href="{% url 'course-list' %}" class="btn btn-secondary">← Back</a>
+        </div>
+    </div>
+
+    <!-- Course Overview -->
+    <div class="course-overview">
+        <div class="overview-item">
+            <div class="overview-icon">📚</div>
+            <div class="overview-content">
+                <div class="overview-label">Resources</div>
+                <div class="overview-value">{{ course.resource_count }}</div>
+            </div>
+        </div>
+        <div class="overview-item">
+            <div class="overview-icon">⏱️</div>
+            <div class="overview-content">
+                <div class="overview-label">Duration</div>
+                <div class="overview-value">{{ course.total_resource_hours }}h</div>
+            </div>
+        </div>
+        <div class="overview-item">
+            <div class="overview-icon">📅</div>
+            <div class="overview-content">
+                <div class="overview-label">Created</div>
+                <div class="overview-value">{{ course.created_at|date:"M d" }}</div>
+            </div>
+        </div>
+        <div class="overview-item">
+            <div class="overview-icon">{% if enrollment %}⚡{% else %}🆕{% endif %}</div>
+            <div class="overview-content">
+                <div class="overview-label">Status</div>
+                <div class="overview-value">{% if enrollment %}{{ enrollment.get_status_display }}{% else %}Not Enrolled{% endif %}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Course Info Sections -->
+    <div class="course-info-sections">
+        {% if course.prerequisites %}
+            <div class="info-section">
+                <h3>📋 Prerequisites</h3>
+                <p>{{ course.prerequisites }}</p>
+            </div>
+        {% endif %}
+
+        {% if course.learning_outcomes %}
+            <div class="info-section">
+                <h3>🎯 Learning Outcomes</h3>
+                <ul class="outcomes-list">
+                    {% for outcome in course.learning_outcomes|split:"," %}
+                        <li>{{ outcome|striptags|truncatewords:10 }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Resources Section -->
+    <div class="resources-section">
+        <div class="resources-header">
+            <h2>📖 Curated Learning Resources</h2>
+            {% if is_owner %}<a href="{% url 'course-resource-create' course.pk %}" class="btn btn-primary">➕ Add Resource</a>{% endif %}
+        </div>
+
+        {% if resources %}
+            <!-- Filter by Resource Type -->
+            <div class="resource-filters">
+                <button class="filter-btn active" data-filter="all">All Resources</button>
+                {% for resource_type, res_list in resources_by_type.items %}
+                    <button class="filter-btn" data-filter="{{ resource_type|lower|replace:' ':'-' }}">
+                        {{ resource_type }} ({{ res_list|length }})
+                    </button>
+                {% endfor %}
+            </div>
+
+            <div class="resources-table">
+                <div class="table-header">
+                    <div class="col-title">Resource</div>
+                    <div class="col-type">Type</div>
+                    <div class="col-platform">Platform</div>
+                    <div class="col-quality">Quality</div>
+                    <div class="col-flags">Flags</div>
+                    <div class="col-actions">Actions</div>
+                </div>
+
+                {% for resource in resources %}
+                    <div class="table-row" data-type="{{ resource.get_resource_type_display|lower|replace:' ':'-' }}">
+                        <div class="col-title">
+                            <div class="resource-title">{{ resource.title }}</div>
+                            <div class="resource-description">{{ resource.description|truncatewords:15 }}</div>
+                        </div>
+                        
+                        <div class="col-type">
+                            <span class="badge badge-type">{{ resource.get_resource_type_display }}</span>
+                        </div>
+                        
+                        <div class="col-platform">
+                            <span class="platform-tag">{{ resource.platform }}</span>
+                        </div>
+                        
+                        <div class="col-quality">
+                            <span class="quality-rating">
+                                {% for i in resource.get_star_rating|times %}⭐{% endfor %}
+                            </span>
+                        </div>
+                        
+                        <div class="col-flags">
+                            <div class="flags">
+                                {% if resource.is_free %}<span class="flag flag-free">💰 Free</span>{% endif %}
+                                {% if resource.is_official %}<span class="flag flag-official">✅ Official</span>{% endif %}
+                                {% if resource.is_trending %}<span class="flag flag-trending">🔥 Trending</span>{% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="col-actions">
+                            <a href="{{ resource.url }}" target="_blank" class="btn btn-info btn-xs">🔗 View</a>
+                            {% if is_owner %}
+                                <a href="{% url 'course-resource-update' resource.pk %}" class="btn btn-warning btn-xs">✏️</a>
+                                <a href="{% url 'course-resource-delete' resource.pk %}" class="btn btn-danger btn-xs">🗑️</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <div class="empty-icon">📚</div>
+                <h3>No resources added yet</h3>
+                <p>Start building your course by adding learning resources</p>
+                <a href="{% url 'course-resource-create' course.pk %}" class="btn btn-primary">➕ Add Your First Resource</a>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Course Actions -->
+    <div class="course-actions">
+        {% if is_owner %}
+            <a href="{% url 'course-update' course.pk %}" class="btn btn-warning">✏️ Edit Course</a>
+            <a href="{% url 'course-delete' course.pk %}" class="btn btn-danger">🗑️ Delete Course</a>
+        {% endif %}
+        <a href="{% url 'course-list' %}" class="btn btn-secondary">← Back to Courses</a>
+    </div>
+</div>
+
+<style>
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 32px;
+    }
+
+    .header-content {
+        flex: 1;
+    }
+
+    .course-badges {
+        display: flex;
+        gap: 8px;
+        margin: 12px 0;
+    }
+
+    .header-actions {
+        display: flex;
+        gap: 12px;
+    }
+
+    .course-overview {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 16px;
+        margin-bottom: 32px;
+    }
+
+    .overview-item {
+        background: var(--color-card-bg, #1e293b);
+        border: 1px solid var(--color-border, #334155);
+        border-radius: 12px;
+        padding: 16px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .overview-icon {
+        font-size: 24px;
+    }
+
+    .overview-label {
+        color: var(--color-text-muted, #94a3b8);
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .overview-value {
+        color: var(--color-text, #f8fafc);
+        font-size: 18px;
+        font-weight: 600;
+    }
+
+    .course-info-sections {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+        margin-bottom: 32px;
+    }
+
+    .info-section {
+        background: var(--color-card-bg, #1e293b);
+        border: 1px solid var(--color-border, #334155);
+        border-radius: 12px;
+        padding: 24px;
+    }
+
+    .info-section h3 {
+        color: var(--color-text, #f8fafc);
+        margin: 0 0 12px 0;
+        font-size: 16px;
+    }
+
+    .info-section p {
+        color: var(--color-text-muted, #94a3b8);
+        line-height: 1.6;
+        margin: 0;
+    }
+
+    .outcomes-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .outcomes-list li {
+        color: var(--color-text-muted, #94a3b8);
+        padding: 8px 0 8px 24px;
+        position: relative;
+    }
+
+    .outcomes-list li:before {
+        content: "✓";
+        position: absolute;
+        left: 0;
+        color: var(--color-primary, #8b5cf6);
+        font-weight: bold;
+    }
+
+    .resources-section {
+        background: var(--color-card-bg, #1e293b);
+        border: 1px solid var(--color-border, #334155);
+        border-radius: 12px;
+        padding: 24px;
+        margin-bottom: 24px;
+    }
+
+    .resources-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+    }
+
+    .resources-header h2 {
+        margin: 0;
+        color: var(--color-text, #f8fafc);
+    }
+
+    .resource-filters {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 24px;
+        flex-wrap: wrap;
+    }
+
+    .filter-btn {
+        padding: 8px 16px;
+        background: var(--color-bg-main, #0f172a);
+        border: 1px solid var(--color-border, #334155);
+        color: var(--color-text-muted, #94a3b8);
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 13px;
+        transition: all 0.3s ease;
+    }
+
+    .filter-btn:hover,
+    .filter-btn.active {
+        background: var(--color-primary, #8b5cf6);
+        color: white;
+        border-color: var(--color-primary, #8b5cf6);
+    }
+
+    .resources-table {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .table-header {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1.2fr 1fr 1.5fr 1fr;
+        gap: 12px;
+        padding: 12px;
+        background: rgba(139, 92, 246, 0.05);
+        border-radius: 8px;
+        font-weight: 600;
+        color: var(--color-text, #f8fafc);
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .table-row {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1.2fr 1fr 1.5fr 1fr;
+        gap: 12px;
+        padding: 12px;
+        border: 1px solid var(--color-border, #334155);
+        border-radius: 8px;
+        align-items: center;
+    }
+
+    .col-title {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .resource-title {
+        color: var(--color-text, #f8fafc);
+        font-weight: 500;
+    }
+
+    .resource-description {
+        color: var(--color-text-muted, #94a3b8);
+        font-size: 12px;
+    }
+
+    .badge-type {
+        background: var(--color-primary, #8b5cf6);
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 11px;
+    }
+
+    .platform-tag {
+        background: rgba(34, 211, 238, 0.1);
+        color: #22d3ee;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+    }
+
+    .quality-rating {
+        font-size: 14px;
+    }
+
+    .flags {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+    }
+
+    .flag {
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 11px;
+        font-weight: 500;
+    }
+
+    .flag-free {
+        background: #10b98108;
+        color: #10b981;
+    }
+
+    .flag-official {
+        background: #f59e0b08;
+        color: #f59e0b;
+    }
+
+    .flag-trending {
+        background: #ef444408;
+        color: #ef4444;
+    }
+
+    .col-actions {
+        display: flex;
+        gap: 6px;
+    }
+
+    .btn-xs {
+        padding: 4px 8px;
+        font-size: 11px;
+    }
+
+    .course-actions {
+        display: flex;
+        gap: 12px;
+        margin-top: 24px;
+        justify-content: center;
+    }
+
+    @media (max-width: 1024px) {
+        .course-info-sections {
+            grid-template-columns: 1fr;
+        }
+
+        .table-header,
+        .table-row {
+            grid-template-columns: 2fr 1fr 1fr 0.8fr;
+        }
+
+        .col-platform,
+        .col-flags {
+            display: none;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .page-header {
+            flex-direction: column;
+        }
+
+        .header-actions {
+            margin-top: 16px;
+            width: 100%;
+        }
+
+        .table-header,
+        .table-row {
+            grid-template-columns: 1fr;
+        }
+
+        .col-type,
+        .col-platform,
+        .col-quality,
+        .col-flags {
+            display: none;
+        }
+    }
+</style>
+
+<script>
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const filter = e.target.dataset.filter;
+            document.querySelectorAll('.table-row').forEach(row => {
+                if (filter === 'all' || row.dataset.type === filter) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            e.target.classList.add('active');
+        });
+    });
+</script>
+{% endblock %}

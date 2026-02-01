@@ -1,0 +1,197 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Delete Goal - AptiFy{% endblock %}
+
+{% block content %}
+<div class="delete-page">
+  <nav class="navbar">
+    <div class="navbar-content">
+      <h1 class="navbar-brand">AptiFy</h1>
+      <div class="navbar-menu">
+        <a href="{% url 'dashboard' %}" class="nav-link">Dashboard</a>
+        <a href="{% url 'goal-list' %}" class="nav-link active">Goals</a>
+        <a href="#" class="nav-link">Assignments</a>
+        <a href="#" class="nav-link">Settings</a>
+      </div>
+      <div class="navbar-actions">
+        <div class="user-display">{{ user.username }}</div>
+        <form method="post" action="{% url 'account_logout' %}">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-outline btn-small">
+            Logout
+          </button>
+        </form>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container">
+    <div class="delete-container">
+      <div class="delete-icon">⚠️</div>
+      
+      <h2>Delete Goal</h2>
+      <p class="confirm-text">
+        Are you sure you want to delete <strong>"{{ object.name }}"</strong>?
+      </p>
+      <p class="warning-text">
+        This action cannot be undone. The goal and all associated data will be permanently deleted.
+      </p>
+
+      <form method="post" class="delete-form">
+        {% csrf_token %}
+        
+        <div class="goal-info">
+          <div class="info-item">
+            <span class="label">Goal:</span>
+            <span class="value">{{ object.name }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">Deadline:</span>
+            <span class="value">{{ object.deadline|date:"M d, Y" }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">Status:</span>
+            <span class="value">{{ object.get_status_display }}</span>
+          </div>
+        </div>
+
+        <div class="delete-actions">
+          <button type="submit" class="btn btn-danger btn-large">Yes, Delete Goal</button>
+          <a href="{% url 'goal-list' %}" class="btn btn-outline btn-large">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <p>&copy; 2026 AptiFy. All rights reserved.</p>
+  </footer>
+</div>
+
+<style>
+.delete-page {
+  min-height: 100vh;
+  background: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  display: flex;
+  flex-direction: column;
+}
+
+.container {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.delete-container {
+  background: var(--color-bg-card);
+  padding: 2rem;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  width: 100%;
+}
+
+.delete-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.delete-container h2 {
+  margin: 0 0 1rem 0;
+  font-size: 1.8rem;
+  color: #842029;
+}
+
+.confirm-text {
+  margin: 0 0 1rem 0;
+  font-size: 1.1rem;
+  color: var(--color-text-primary);
+}
+
+.warning-text {
+  margin: 0 0 2rem 0;
+  font-size: 0.95rem;
+  color: var(--color-text-muted);
+  padding: 1rem;
+  background: #f8d7da;
+  border: 1px solid #f5c2c7;
+  border-radius: 5px;
+  color: #842029;
+}
+
+.goal-info {
+  text-align: left;
+  margin: 2rem 0;
+  padding: 1.5rem;
+  background: var(--color-bg-primary);
+  border-radius: 5px;
+}
+
+.info-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.info-item:last-child {
+  border-bottom: none;
+}
+
+.info-item .label {
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.info-item .value {
+  color: var(--color-text-primary);
+}
+
+.delete-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.delete-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.btn-danger {
+  background: #dc3545;
+  color: white;
+  border: 1px solid #dc3545;
+}
+
+.btn-danger:hover {
+  background: #c82333;
+  border-color: #c82333;
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 1rem;
+  }
+
+  .delete-container {
+    padding: 1.5rem;
+  }
+
+  .delete-actions {
+    flex-direction: column;
+  }
+
+  .delete-actions .btn {
+    width: 100%;
+  }
+}
+</style>
+{% endblock %}

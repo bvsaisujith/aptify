@@ -1,0 +1,265 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Browse Courses - AptiFy{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Header Section -->
+    <div class="page-header">
+        <div class="header-content">
+            <h1>📚 Available Learning Courses</h1>
+            <p class="subtitle">Browse and explore curated learning paths with quality resources</p>
+        </div>
+        <a href="{% url 'course-create' %}" class="btn btn-primary">➕ Create New Course</a>
+    </div>
+
+    <!-- Statistics Section -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon">📚</div>
+            <div class="stat-content">
+                <div class="stat-value">{{ total_courses }}</div>
+                <div class="stat-label">Courses Enrolled</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">⚡</div>
+            <div class="stat-content">
+                <div class="stat-value">{{ in_progress_courses }}</div>
+                <div class="stat-label">In Progress</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">✅</div>
+            <div class="stat-content">
+                <div class="stat-value">{{ completed_courses }}</div>
+                <div class="stat-label">Completed</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">🎓</div>
+            <div class="stat-content">
+                <div class="stat-value">{{ user_courses_created }}</div>
+                <div class="stat-label">Courses Created</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Section -->
+    <div class="filter-header">
+        <h2>🔍 Filter & Sort Courses</h2>
+    </div>
+    
+    <form method="get" class="filter-section">
+        <div class="filter-row">
+            <div class="filter-group">
+                <label for="id_category">Category</label>
+                {{ filter_form.category }}
+            </div>
+            
+            <div class="filter-group">
+                <label for="id_level">Level</label>
+                {{ filter_form.level }}
+            </div>
+            
+            <div class="filter-group">
+                <label for="id_sort">Sort By</label>
+                {{ filter_form.sort }}
+            </div>
+            
+            <div class="filter-actions">
+                <button type="submit" class="btn btn-primary">🔍 Apply Filters</button>
+                <a href="{% url 'course-list' %}" class="btn btn-secondary">↻ Reset</a>
+            </div>
+        </div>
+    </form>
+
+    <!-- Courses Display -->
+    <div class="courses-section">
+        {% if courses %}
+            <div class="courses-grid">
+                {% for course in courses %}
+                    <div class="course-card">
+                        <div class="course-header">
+                            <h3>{{ course.name }}</h3>
+                            <div class="course-meta">
+                                <span class="badge badge-{{ course.level }}">{{ course.get_level_display }}</span>
+                                <span class="badge badge-category">{{ course.category }}</span>
+                            </div>
+                        </div>
+                        
+                        <p class="course-description">{{ course.description|truncatewords:20 }}</p>
+                        
+                        <div class="course-stats">
+                            <div class="stat-item">
+                                <span class="stat-icon">📚</span>
+                                <span class="stat-text">{{ course.resource_count }} Resources</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-icon">⏱️</span>
+                                <span class="stat-text">{{ course.duration_hours|default:"TBD" }}h</span>
+                            </div>
+                        </div>
+                        
+                        <div class="course-actions">
+                            <a href="{% url 'course-detail' course.pk %}" class="btn btn-info btn-small">👁️ View Details</a>
+                            {% if user == course.user %}
+                                <a href="{% url 'course-update' course.pk %}" class="btn btn-warning btn-small">✏️ Edit</a>
+                                <a href="{% url 'course-delete' course.pk %}" class="btn btn-danger btn-small">🗑️ Delete</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <!-- Pagination -->
+            {% if is_paginated %}
+                <div class="pagination">
+                    <span class="step-links">
+                        {% if page_obj.has_previous %}
+                            <a href="?page=1">« First</a>
+                            <a href="?page={{ page_obj.previous_page_number }}">‹ Previous</a>
+                        {% endif %}
+
+                        <span class="current">
+                            Page <strong>{{ page_obj.number }}</strong> of <strong>{{ page_obj.paginator.num_pages }}</strong>
+                        </span>
+
+                        {% if page_obj.has_next %}
+                            <a href="?page={{ page_obj.next_page_number }}">Next ›</a>
+                            <a href="?page={{ page_obj.paginator.num_pages }}">Last »</a>
+                        {% endif %}
+                    </span>
+                </div>
+            {% endif %}
+        {% else %}
+            <div class="empty-state">
+                <div class="empty-icon">📖</div>
+                <h3>No courses yet</h3>
+                <p>Start your learning journey by creating your first course!</p>
+                <a href="{% url 'course-create' %}" class="btn btn-primary">Create Your First Course</a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+    .courses-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 24px;
+        margin-top: 24px;
+    }
+
+    .course-card {
+        background: var(--color-card-bg, #1e293b);
+        border: 1px solid var(--color-border, #334155);
+        border-radius: 12px;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .course-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+        border-color: var(--color-primary, #8b5cf6);
+    }
+
+    .course-header {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .course-header {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .course-header h3 {
+        margin: 0;
+        color: var(--color-text, #f8fafc);
+        font-size: 18px;
+        font-weight: 600;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+    }
+
+    .course-meta {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .course-description {
+        color: var(--color-text-muted, #94a3b8);
+        font-size: 14px;
+        line-height: 1.5;
+        margin: 0;
+    }
+
+    .course-stats {
+        display: flex;
+        gap: 16px;
+        padding: 12px;
+        background: rgba(139, 92, 246, 0.05);
+        border-radius: 8px;
+    }
+
+    .stat-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        color: var(--color-text, #f8fafc);
+        font-size: 14px;
+    }
+
+    .course-actions {
+        display: flex;
+        gap: 8px;
+        margin-top: auto;
+        flex-wrap: wrap;
+    }
+
+    .btn-small {
+        padding: 8px 12px;
+        font-size: 12px;
+        flex: 1;
+        min-width: 70px;
+        text-align: center;
+        white-space: nowrap;
+    }
+
+    .badge-beginner {
+        background: #10b981;
+    }
+
+    .badge-intermediate {
+        background: #f59e0b;
+    }
+
+    .badge-advanced {
+        background: #ef4444;
+    }
+
+    .badge-expert {
+        background: #8b5cf6;
+    }
+
+    .badge-category {
+        background: var(--color-primary, #8b5cf6);
+    }
+
+    @media (max-width: 768px) {
+        .courses-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}

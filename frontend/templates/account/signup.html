@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load account socialaccount %}
+
+{% block title %}Sign Up - AptiFy{% endblock %}
+
+{% block content %}
+<div class="login-page">
+  <div class="login-background">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+  </div>
+
+  <div class="login-container">
+    <div class="login-header">
+      <h1 class="brand">AptiFy</h1>
+      <p class="tagline">Join the future of learning</p>
+    </div>
+
+    <div class="login-card">
+      <h2 class="text-center mb-3">Create Account</h2>
+
+      {% if form.errors %}
+      <div class="error-message">
+        <p>Please fix the errors below.</p>
+      </div>
+      {% endif %}
+
+      <form
+        class="login-form"
+        method="POST"
+        action="{% url 'account_signup' %}"
+      >
+        {% csrf_token %}
+        
+        {% for field in form %}
+        <div class="form-group">
+          <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+          {{ field }}
+          
+          {% if field.help_text %}
+          <small class="text-muted">{{ field.help_text }}</small>
+          {% endif %}
+          
+          {% if field.errors %}
+          <div
+            style="
+              color: var(--color-danger);
+              font-size: 0.875rem;
+              margin-top: 0.25rem;
+            "
+          >
+            {{ field.errors.0 }}
+          </div>
+          {% endif %}
+        </div>
+        {% endfor %} {% if redirect_field_value %}
+        <input
+          type="hidden"
+          name="{{ redirect_field_name }}"
+          value="{{ redirect_field_value }}"
+        />
+        {% endif %}
+
+        <button type="submit" class="btn btn-primary btn-block">Sign Up</button>
+      </form>
+
+      <div class="login-footer">
+        <p>
+          Already have an account?
+          <a href="{% url 'account_login' %}">Sign In</a>
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

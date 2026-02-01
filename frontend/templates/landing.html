@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}AptiFy - AI-Powered Learning{% endblock %}
+
+{% block content %}
+<div class="landing-page">
+  <nav class="navbar">
+    <div class="navbar-content">
+      <h1 class="navbar-brand">AptiFy</h1>
+      <div class="navbar-actions">
+        <a href="{% url 'account_login' %}" class="btn btn-outline">Login</a>
+        <a href="{% url 'account_signup' %}" class="btn btn-primary"
+          >Get Started</a
+        >
+      </div>
+    </div>
+  </nav>
+
+  <header class="hero-section" style="padding: 100px 20px; text-align: center">
+    <div style="max-width: 800px; margin: 0 auto">
+      <h1 style="font-size: 3.5rem; margin-bottom: 20px">
+        Master Your Potential
+      </h1>
+      <p
+        style="
+          font-size: 1.25rem;
+          color: var(--color-text-muted);
+          margin-bottom: 40px;
+        "
+      >
+        Personalized learning paths adapted to your unique style using advanced
+        AI.
+      </p>
+      <div class="flex gap-2 justify-center">
+        <a href="{% url 'account_signup' %}" class="btn btn-primary btn-lg"
+          >Start Learning Now</a
+        >
+        <a href="#features" class="btn btn-secondary btn-lg">Learn More</a>
+      </div>
+    </div>
+  </header>
+
+  <section
+    id="features"
+    style="padding: 80px 20px; background: var(--color-bg-card)"
+  >
+    <div style="max-width: 1200px; margin: 0 auto">
+      <div class="text-center mb-3">
+        <h2>Why AptiFy?</h2>
+        <p>Features designed for modern learners.</p>
+      </div>
+
+      <div class="dashboard-cards">
+        <div class="card">
+          <div class="card-icon">🧠</div>
+          <h3>Adaptive AI</h3>
+          <p>
+            Our algorithms adjust content difficulty in real-time based on your
+            performance.
+          </p>
+        </div>
+        <div class="card">
+          <div class="card-icon">⚡</div>
+          <h3>Instant Feedback</h3>
+          <p>
+            Get detailed explanations and corrections immediately after
+            submitting answers.
+          </p>
+        </div>
+        <div class="card">
+          <div class="card-icon">📈</div>
+          <h3>Deep Analytics</h3>
+          <p>
+            Visualize your progress and identify knowledge gaps with precision.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <p>&copy; 2026 AptiFy. Built for the future.</p>
+  </footer>
+</div>
+{% endblock %}

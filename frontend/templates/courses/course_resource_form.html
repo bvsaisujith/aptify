@@ -1,0 +1,312 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{% if form.instance.pk %}Edit{% else %}Add{% endif %} Resource - AptiFy{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Header Section -->
+    <div class="page-header">
+        <div class="header-content">
+            <h1>{% if form.instance.pk %}✏️ Edit Resource{% else %}➕ Add Learning Resource{% endif %}</h1>
+            <p class="subtitle">Curate high-quality resources for {{ course.name }}</p>
+        </div>
+    </div>
+
+    <!-- Form Section -->
+    <div class="form-container">
+        <form method="post" class="resource-form">
+            {% csrf_token %}
+            
+            <div class="form-section">
+                <h2>Resource Information</h2>
+                
+                <div class="form-group">
+                    <label for="{{ form.title.id_for_label }}">{{ form.title.label }}</label>
+                    {{ form.title }}
+                    {% if form.title.errors %}
+                        <div class="error-message">{{ form.title.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.description.id_for_label }}">{{ form.description.label }}</label>
+                    {{ form.description }}
+                    {% if form.description.errors %}
+                        <div class="error-message">{{ form.description.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="{{ form.resource_type.id_for_label }}">{{ form.resource_type.label }}</label>
+                        {{ form.resource_type }}
+                        {% if form.resource_type.errors %}
+                            <div class="error-message">{{ form.resource_type.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ form.difficulty_level.id_for_label }}">{{ form.difficulty_level.label }}</label>
+                        {{ form.difficulty_level }}
+                        {% if form.difficulty_level.errors %}
+                            <div class="error-message">{{ form.difficulty_level.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h2>Source & Access</h2>
+
+                <div class="form-group">
+                    <label for="{{ form.url.id_for_label }}">{{ form.url.label }}</label>
+                    {{ form.url }}
+                    <small class="form-text">Link to the resource (e.g., tutorial, article, documentation)</small>
+                    {% if form.url.errors %}
+                        <div class="error-message">{{ form.url.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="{{ form.platform.id_for_label }}">{{ form.platform.label }}</label>
+                        {{ form.platform }}
+                        <small class="form-text">e.g., freeCodeCamp, MDN, GitHub</small>
+                        {% if form.platform.errors %}
+                            <div class="error-message">{{ form.platform.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ form.duration_hours.id_for_label }}">{{ form.duration_hours.label }}</label>
+                        {{ form.duration_hours }}
+                        {% if form.duration_hours.errors %}
+                            <div class="error-message">{{ form.duration_hours.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h2>Quality & Curation</h2>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="{{ form.quality_rating.id_for_label }}">{{ form.quality_rating.label }}</label>
+                        {{ form.quality_rating }}
+                        <small class="form-text">Rate the quality of this resource</small>
+                        {% if form.quality_rating.errors %}
+                            <div class="error-message">{{ form.quality_rating.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="checkbox-group">
+                    <div class="checkbox-item">
+                        <input type="checkbox" name="is_free" id="{{ form.is_free.id_for_label }}" 
+                               {% if form.is_free.value %}checked{% endif %} class="form-check-input">
+                        <label for="{{ form.is_free.id_for_label }}">💰 Free Resource</label>
+                    </div>
+
+                    <div class="checkbox-item">
+                        <input type="checkbox" name="is_official" id="{{ form.is_official.id_for_label }}" 
+                               {% if form.is_official.value %}checked{% endif %} class="form-check-input">
+                        <label for="{{ form.is_official.id_for_label }}">✅ Official/Verified Resource</label>
+                    </div>
+
+                    <div class="checkbox-item">
+                        <input type="checkbox" name="is_trending" id="{{ form.is_trending.id_for_label }}" 
+                               {% if form.is_trending.value %}checked{% endif %} class="form-check-input">
+                        <label for="{{ form.is_trending.id_for_label }}">🔥 Trending/Popular</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <a href="{% url 'course-detail' course.pk %}" class="btn btn-secondary">❌ Cancel</a>
+                <button type="submit" class="btn btn-primary">💾 Save Resource</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Quick Tips -->
+    <div class="tips-section">
+        <h3>💡 Tips for Adding Resources</h3>
+        <ul>
+            <li><strong>Choose diverse resources:</strong> Mix documentation, tutorials, articles, and interactive content</li>
+            <li><strong>Prioritize quality:</strong> Select highly-rated and well-maintained resources</li>
+            <li><strong>Mark official sources:</strong> Official documentation and verified resources help learners</li>
+            <li><strong>Include free options:</strong> Ensure access for all learners by prioritizing free resources</li>
+            <li><strong>Update regularly:</strong> Keep resources current and remove outdated links</li>
+        </ul>
+    </div>
+</div>
+
+<style>
+    .form-container {
+        background: var(--color-card-bg, #1e293b);
+        border: 1px solid var(--color-border, #334155);
+        border-radius: 12px;
+        padding: 32px;
+        margin-bottom: 32px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .resource-form {
+        display: flex;
+        flex-direction: column;
+        gap: 32px;
+    }
+
+    .form-section {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .form-section h2 {
+        color: var(--color-text, #f8fafc);
+        font-size: 18px;
+        margin: 0 0 8px 0;
+        padding-bottom: 8px;
+        border-bottom: 2px solid var(--color-primary, #8b5cf6);
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .form-group label {
+        color: var(--color-text, #f8fafc);
+        font-weight: 500;
+        font-size: 14px;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        padding: 12px;
+        border: 2px solid var(--color-border, #334155);
+        border-radius: 8px;
+        background: var(--color-bg-main, #0f172a);
+        color: var(--color-text, #f8fafc);
+        font-family: inherit;
+        font-size: 14px;
+        transition: border-color 0.3s ease;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+        outline: none;
+        border-color: var(--color-primary, #8b5cf6);
+        box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+    }
+
+    .form-text {
+        color: var(--color-text-muted, #94a3b8);
+        font-size: 12px;
+    }
+
+    .checkbox-group {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .checkbox-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .checkbox-item input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+    }
+
+    .checkbox-item label {
+        cursor: pointer;
+        color: var(--color-text, #f8fafc);
+        font-size: 14px;
+        margin: 0;
+    }
+
+    .error-message {
+        color: #ef4444;
+        font-size: 13px;
+        margin-top: 4px;
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 12px;
+        justify-content: flex-end;
+        margin-top: 24px;
+        padding-top: 24px;
+        border-top: 1px solid var(--color-border, #334155);
+    }
+
+    .tips-section {
+        background: var(--color-card-bg, #1e293b);
+        border: 1px solid var(--color-border, #334155);
+        border-radius: 12px;
+        padding: 24px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .tips-section h3 {
+        color: var(--color-text, #f8fafc);
+        margin: 0 0 16px 0;
+        font-size: 16px;
+    }
+
+    .tips-section ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .tips-section li {
+        color: var(--color-text-muted, #94a3b8);
+        padding-left: 24px;
+        position: relative;
+        line-height: 1.6;
+    }
+
+    .tips-section li:before {
+        content: "✓";
+        position: absolute;
+        left: 0;
+        color: var(--color-primary, #8b5cf6);
+        font-weight: bold;
+    }
+
+    @media (max-width: 768px) {
+        .form-container {
+            padding: 24px;
+        }
+
+        .form-row {
+            grid-template-columns: 1fr;
+        }
+
+        .form-actions {
+            flex-direction: column-reverse;
+        }
+    }
+</style>
+{% endblock %}

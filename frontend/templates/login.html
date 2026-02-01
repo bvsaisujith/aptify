@@ -1,0 +1,67 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - AptiFy</title>
+  <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+</head>
+<body class="login-page">
+  <div class="login-container">
+    <div class="login-card">
+      <div class="login-header">
+        <h1 class="brand">AptiFy</h1>
+        <p class="tagline">Connect. Assess. Succeed.</p>
+      </div>
+
+      <form id="loginForm" class="login-form">
+        <div class="form-group">
+          <label for="email">Email Address</label>
+          <input
+            type="email"
+            id="email"
+            name="email"
+            placeholder="your@email.com"
+            required
+            autocomplete="email"
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input
+            type="password"
+            id="password"
+            name="password"
+            placeholder="••••••••"
+            required
+            autocomplete="current-password"
+          >
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block">
+          <span class="btn-text">Sign In</span>
+          <span class="btn-loader" style="display: none;">
+            <span class="spinner-small"></span>
+          </span>
+        </button>
+      </form>
+
+      <div class="login-footer">
+        <p>Don't have an account? <a href="/signup.html">Sign up here</a></p>
+      </div>
+
+      <div id="errorMessage" class="error-message" style="display: none;"></div>
+    </div>
+
+    <div class="login-background">
+      <div class="blob blob-1"></div>
+      <div class="blob blob-2"></div>
+    </div>
+  </div>
+
+  <script src="{% static 'js/auth-guard.js' %}"></script>
+  <script src="{% static 'js/login.js' %}"></script>
+</body>
+</html>
